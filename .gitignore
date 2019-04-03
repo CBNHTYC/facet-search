@@ -1,0 +1,35 @@
+*/target/*
+**/target/*
+/target/
+/tmp/
+!.mvn/wrapper/maven-wrapper.jar
+
+fc-api/src/main/java/META-INF/JAXB/META-INF/
+fc-api/src/main/java/ru/kubsu/fs/schema
+
+**/*.log
+**/*.log.zip
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+*.DS_Store
+
+### NetBeans ###
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/

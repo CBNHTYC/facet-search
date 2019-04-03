@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="unqualified" attributeFormDefault="unqualified"
+           version="0.1"
+           targetNamespace="kubsu:facet"
+           xmlns:tns="kubsu:facet">
+    <xs:element name="TransferQueryParameters" type="tns:TransferQueryParametersType"/>
+
+    <xs:complexType name="TransferQueryParametersType">
+        <xs:sequence>
+            <xs:element name="Header" type="tns:HeaderType"/>
+            <xs:element name="queryParameters">
+                <xs:annotation>
+                    <xs:documentation>Содержит списки параметров запроса</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="simpleParameter" type="tns:simpleParameterType" minOccurs="0" maxOccurs="unbounded">
+                            <xs:annotation>
+                                <xs:documentation>Содержит имя параметра и его значение</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                        <xs:element name="rangeParameter" type="tns:rangeParameterType" minOccurs="0" maxOccurs="unbounded">
+                            <xs:annotation>
+                                <xs:documentation>Содержит имя параметра и диапазон его значений</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="HeaderType">
+        <xs:sequence>
+            <xs:element name="RequestTime" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Содержит время запроса</xs:documentation>
+                    </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="simpleParameterType">
+        <xs:sequence>
+            <xs:element name="Type" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>Тип передаваемых данных</xs:documentation>
+                    </xs:annotation>
+            </xs:element>
+            <xs:element name="Name" type="xs:string"/>
+            <xs:element name="Value" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="rangeParameterType">
+        <xs:sequence>
+            <xs:element name="Type" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Тип передаваемых данных</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="Name" type="xs:string"/>
+            <xs:element name="ValueBegin" type="xs:string"/>
+            <xs:element name="ValueEnd" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="unqualified" attributeFormDefault="unqualified"
+           version="0.1"
+           targetNamespace="kubsu:facet"
+           xmlns:tns="kubsu:facet">
+    <xs:element name="TransferQueryResult" type="tns:TransferQueryResultType"/>
+
+    <xs:complexType name="TransferQueryResultType">
+        <xs:sequence>
+            <xs:element name="Header" type="tns:HeaderType"/>
+            <xs:element name="PhoneList" type="tns:PhoneListType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="PhoneListType">
+        <xs:sequence>
+            <xs:element name="Phone" type="tns:PhoneType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="HeaderType">
+        <xs:sequence>
+
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="PhoneType">
+        <xs:sequence>
+            <xs:element name="price" type="xs:int"/>
+            <xs:element name="producer" type="xs:string"/>
+            <xs:element name="model" type="xs:string"/>
+            <xs:element name="diagonal" type="xs:int"/>
+            <xs:element name="ram" type="xs:int"/>
+            <xs:element name="accumulator" type="xs:int"/>
+            <xs:element name="sim" type="xs:int"/>
+            <xs:element name="views" type="xs:int"/>
+
+            <xs:element name="comments" type="tns:commentsType"/>
+            <xs:element name="images" type="tns:imagesType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="commentsType">
+        <xs:sequence>
+            <xs:element name="comment" type="tns:commentType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="imagesType">
+        <xs:sequence>
+            <xs:element name="image" type="tns:imageType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="commentType">
+        <xs:sequence>
+            <xs:element name="username" type="xs:string" nillable="true"/>
+            <xs:element name="date" type="xs:string" nillable="true"/>
+            <xs:element name="text" type="xs:string" nillable="true"/>
+            <xs:element name="degree" type="xs:int" nillable="true"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="imageType">
+        <xs:sequence>
+            <xs:element name="location" type="xs:string" nillable="true"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

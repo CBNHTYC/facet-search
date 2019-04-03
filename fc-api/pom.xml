@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>facet-seqrch</artifactId>
+        <groupId>ru.kubsu.fc</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>fc-api</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>generate-query_parameters</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                ${project.basedir}/src/main/resources/xsd/TransferQueryParameters.xsd
+                            </sources>
+                            <encoding>UTF-8</encoding>
+                            <packageName>ru.kubsu.fs.schema.QueryParameters</packageName>
+                            <outputDirectory>src/main/java</outputDirectory>
+                            <clearOutputDir>false</clearOutputDir>
+                        </configuration>
+                    </execution>
+                    <!--<execution>-->
+                        <!--<id>generate-request_parameters</id>-->
+                        <!--<goals>-->
+                            <!--<goal>xjc</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<sources>-->
+                                <!--${project.basedir}/src/main/resources/xsd/TransferQueryResult.xsd-->
+                            <!--</sources>-->
+                            <!--<encoding>UTF-8</encoding>-->
+                            <!--<packageName>ru.kubsu.fs.schema.ResponseParameters</packageName>-->
+                            <!--<outputDirectory>src/main/java</outputDirectory>-->
+                            <!--<clearOutputDir>false</clearOutputDir>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                    <!--После генерации в сгенеренном выше классе необходимо над его объявлением указать @XmlRootElement-->
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/src/main/java/ru.kubsu.fs.schema.QueryParameters</directory>
+                            <includes>
+                                <include>**/*.java</include>
+                            </includes>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
