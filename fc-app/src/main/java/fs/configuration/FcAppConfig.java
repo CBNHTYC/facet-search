@@ -20,21 +20,4 @@ public class FcAppConfig {
         restTemplate.getMessageConverters().add(jsonHttpMessageConverter);
         return restTemplate;
     }
-
-    @Bean
-    public JavaMailSender javaMailSender() {
-        JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
-        javaMailSender.setHost("post.utair.ru");
-        javaMailSender.setPort(465);
-        javaMailSender.setUsername("intranet");
-        javaMailSender.setPassword("tMjS2aSv");
-
-        Properties props = javaMailSender.getJavaMailProperties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.debug", "true");
-        props.put("mail.mime.charset", "UTF-8");
-
-        return javaMailSender;
-    }
-
 }
