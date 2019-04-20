@@ -2,10 +2,21 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="unqualified" attributeFormDefault="unqualified"
            version="0.1"
            targetNamespace="kubsu:facet"
-           xmlns:tns="kubsu:facet">
+           xmlns:tns="kubsu:facet"
+           xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+           xmlns:annox="http://annox.dev.java.net"
+           jaxb:extensionBindingPrefixes="annox"
+           jaxb:version="2.1">
     <xs:element name="TransferQueryResult" type="tns:TransferQueryResultType"/>
 
     <xs:complexType name="TransferQueryResultType">
+        <xs:annotation>
+            <xs:appinfo>
+                <annox:annotate>
+                    <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement" name="TransferQueryResult"/>
+                </annox:annotate>
+            </xs:appinfo>
+        </xs:annotation>
         <xs:sequence>
             <xs:element name="Header" type="tns:HeaderType"/>
             <xs:element name="PhoneList" type="tns:PhoneListType"/>
@@ -14,7 +25,7 @@
 
     <xs:complexType name="PhoneListType">
         <xs:sequence>
-            <xs:element name="Phone" type="tns:PhoneType" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="Phones" type="tns:PhoneType" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
 
@@ -27,22 +38,15 @@
     <xs:complexType name="PhoneType">
         <xs:sequence>
             <xs:element name="price" type="xs:int"/>
-            <xs:element name="producer" type="xs:string"/>
-            <xs:element name="model" type="xs:string"/>
-            <xs:element name="diagonal" type="xs:int"/>
-            <xs:element name="ram" type="xs:int"/>
-            <xs:element name="accumulator" type="xs:int"/>
-            <xs:element name="sim" type="xs:int"/>
+            <xs:element name="vendor" type="xs:string"/>
+            <xs:element name="model_name" type="xs:string"/>
+            <xs:element name="diagonal" type="xs:string"/>
+            <xs:element name="ram" type="xs:string"/>
+            <xs:element name="accumulator" type="xs:string"/>
+            <xs:element name="sim" type="xs:string"/>
             <xs:element name="views" type="xs:int"/>
 
-            <xs:element name="comments" type="tns:commentsType"/>
             <xs:element name="images" type="tns:imagesType"/>
-        </xs:sequence>
-    </xs:complexType>
-
-    <xs:complexType name="commentsType">
-        <xs:sequence>
-            <xs:element name="comment" type="tns:commentType" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
 

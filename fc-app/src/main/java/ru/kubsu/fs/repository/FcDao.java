@@ -1,33 +1,31 @@
-package fs.repository;
+package ru.kubsu.fs.repository;
 
-import fs.entity.Phone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kubsu.fs.entity.Detail;
+import ru.kubsu.fs.entity.Model;
 import ru.kubsu.fs.schema.QueryParameters.RangeParameterType;
 import ru.kubsu.fs.schema.QueryParameters.SimpleParameterType;
 import ru.kubsu.fs.schema.QueryParameters.TransferQueryParametersType;
 
-import java.sql.SQLException;
 import java.util.List;
 
 @Service
 public class FcDao {
-
     private final
-    PhoneRepository phoneRepository;
+    JdbcModelRepositoryImpl jdbcPhoneRepositoryImpl;
 
-    private final
-    JdbcPhoneRepositoryImpl jdbcPhoneRepositoryImpl;
+    private final DetailsRepository detailsRepository;
 
     @Autowired
-    public FcDao(PhoneRepository phoneRepository, JdbcPhoneRepositoryImpl jdbcPhoneRepositoryImpl) {
-        this.phoneRepository = phoneRepository;
+    public FcDao(JdbcModelRepositoryImpl jdbcPhoneRepositoryImpl, DetailsRepository detailsRepository) {
         this.jdbcPhoneRepositoryImpl = jdbcPhoneRepositoryImpl;
+        this.detailsRepository = detailsRepository;
     }
 
     @Transactional
-    public List<Phone> getPhonesList (TransferQueryParametersType body) {
+    public List<Model> getModelList(TransferQueryParametersType body) {
         TransferQueryParametersType.QueryParameters queryParameters = body.getQueryParameters();
         StringBuilder query = new StringBuilder();
         String paramValue;
@@ -84,6 +82,11 @@ public class FcDao {
                 rangeParameterTypePrevious = rangeParameterType;
             }
         }
-        return jdbcPhoneRepositoryImpl.getPhones(query.toString());
+        return jdbcPhoneRepositoryImpl.getModels(query.toString());
+    }
+
+    @Transactional
+    public Iterable<Detail> getAllDetails() {
+        return detailsRepository.findAll();
     }
 }
