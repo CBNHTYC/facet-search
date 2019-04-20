@@ -1,6 +1,6 @@
-package fs.repository;
+package ru.kubsu.fs.repository;
 
-import fs.entity.Image;
+import ru.kubsu.fs.entity.Image;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

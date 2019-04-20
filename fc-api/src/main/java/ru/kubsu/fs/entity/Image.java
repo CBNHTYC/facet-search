@@ -1,4 +1,4 @@
-package fs.entity;
+package ru.kubsu.fs.entity;
 
 import lombok.Data;
 
@@ -10,12 +10,12 @@ import javax.persistence.*;
 public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "image_id")
+    @Column(name = "id_image")
     private Long imageId;
 
     private String location;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "phone_id", nullable = false)
-    private Phone phone;
+    @JoinColumn(name = "id_model", nullable = false)
+    private Model model;
 }

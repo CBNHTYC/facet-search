@@ -13,8 +13,17 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jvnet.jaxb2_commons</groupId>
+            <artifactId>jaxb2-fluent-api</artifactId>
+            <version>3.0</version>
         </dependency>
     </dependencies>
 
@@ -26,11 +35,13 @@
                 <version>2.4</version>
                 <executions>
                     <execution>
-                        <id>generate-query_parameters</id>
+                        <id>generate-transfer_query_parameters</id>
                         <goals>
                             <goal>xjc</goal>
                         </goals>
                         <configuration>
+                            <!--<extension>true</extension> todo включить, если не заработает-->
+                            <arguments>-Xannotate</arguments>
                             <sources>
                                 ${project.basedir}/src/main/resources/xsd/TransferQueryParameters.xsd
                             </sources>
@@ -40,23 +51,53 @@
                             <clearOutputDir>false</clearOutputDir>
                         </configuration>
                     </execution>
-                    <!--<execution>-->
-                        <!--<id>generate-request_parameters</id>-->
-                        <!--<goals>-->
-                            <!--<goal>xjc</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<sources>-->
-                                <!--${project.basedir}/src/main/resources/xsd/TransferQueryResult.xsd-->
-                            <!--</sources>-->
-                            <!--<encoding>UTF-8</encoding>-->
-                            <!--<packageName>ru.kubsu.fs.schema.ResponseParameters</packageName>-->
-                            <!--<outputDirectory>src/main/java</outputDirectory>-->
-                            <!--<clearOutputDir>false</clearOutputDir>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                    <!--После генерации в сгенеренном выше классе необходимо над его объявлением указать @XmlRootElement-->
+                    <execution>
+                        <id>generate-transfer_query_result</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <!--<extension>true</extension> todo включить, если не заработает-->
+                            <arguments>-Xannotate</arguments>
+                            <sources>
+                                ${project.basedir}/src/main/resources/xsd/TransferQueryResult.xsd
+                            </sources>
+                            <encoding>UTF-8</encoding>
+                            <packageName>ru.kubsu.fs.schema.ResponseParameters</packageName>
+                            <outputDirectory>src/main/java</outputDirectory>
+                            <clearOutputDir>false</clearOutputDir>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-detail_dto</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <!--<extension>true</extension> todo включить, если не заработает-->
+                            <arguments>-Xannotate</arguments>
+                            <sources>
+                                ${project.basedir}/src/main/resources/xsd/DetailDto.xsd
+                            </sources>
+                            <encoding>UTF-8</encoding>
+                            <packageName>ru.kubsu.fs.schema.DetailsDto</packageName>
+                            <outputDirectory>src/main/java</outputDirectory>
+                            <clearOutputDir>false</clearOutputDir>
+                        </configuration>
+                    </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jvnet.jaxb2_commons</groupId>
+                        <artifactId>jaxb2-basics-annotate</artifactId>
+                        <version>0.6.4</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.sun.codemodel</groupId>
+                        <artifactId>codemodel</artifactId>
+                        <version>2.6</version>
+                    </dependency>
+                </dependencies>
             </plugin>
 
             <plugin>
@@ -66,7 +107,7 @@
                 <configuration>
                     <filesets>
                         <fileset>
-                            <directory>${project.basedir}/src/main/java/ru.kubsu.fs.schema.QueryParameters</directory>
+                            <directory>${project.basedir}/src/main/java/ru.kubsu.fs.schema</directory>
                             <includes>
                                 <include>**/*.java</include>
                             </includes>

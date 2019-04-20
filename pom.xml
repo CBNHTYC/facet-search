@@ -21,6 +21,10 @@
         <module>fc-api</module>
     </modules>
 
+    <properties>
+        <elasticsearch.version>6.5.4</elasticsearch.version>
+    </properties>
+
     <build>
         <plugins>
             <plugin>

@@ -1,16 +1,14 @@
-package fs.configuration;
+package ru.kubsu.fs.configuration;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Properties;
-
 @Configuration
+@EntityScan("ru.kubsu.fs.*")
 public class FcAppConfig {
     @Bean
     public RestTemplate restTemplate() {
