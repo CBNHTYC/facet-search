@@ -1,9 +1,11 @@
 package ru.kubsu.fs.repository;
 
+import ru.kubsu.fs.entity.Image;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import ru.kubsu.fs.entity.Detail;
+
+import java.util.List;
 
 @Repository
-public interface DetailsRepository extends CrudRepository<Detail, Long> {
+public interface ImageRepository extends CrudRepository<Image, Long> {
 }

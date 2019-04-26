@@ -17,13 +17,20 @@
     </parent>
 
     <modules>
-        <module>fc-app</module>
         <module>fc-api</module>
+        <module>fc-app</module>
     </modules>
 
     <properties>
         <elasticsearch.version>6.5.4</elasticsearch.version>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>

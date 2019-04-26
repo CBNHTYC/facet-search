@@ -2,6 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <parent>
         <artifactId>facet-seqrch</artifactId>
         <groupId>ru.kubsu.fc</groupId>
@@ -37,7 +38,6 @@
             <artifactId>dozer</artifactId>
             <version>5.5.1</version>
         </dependency>
-
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -75,5 +75,4 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
 </project>

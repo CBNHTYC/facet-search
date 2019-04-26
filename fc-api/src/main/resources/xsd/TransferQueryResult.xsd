@@ -37,37 +37,45 @@
 
     <xs:complexType name="PhoneType">
         <xs:sequence>
-            <xs:element name="price" type="xs:int"/>
-            <xs:element name="vendor" type="xs:string"/>
-            <xs:element name="model_name" type="xs:string"/>
-            <xs:element name="diagonal" type="xs:string"/>
-            <xs:element name="ram" type="xs:string"/>
-            <xs:element name="accumulator" type="xs:string"/>
-            <xs:element name="sim" type="xs:string"/>
-            <xs:element name="views" type="xs:int"/>
-
-            <xs:element name="images" type="tns:imagesType"/>
+            <xs:element name="model" type="tns:modelType"/>
+            <xs:element name="details" type="tns:detailType" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="images" type="tns:imageType" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
 
-    <xs:complexType name="imagesType">
-        <xs:sequence>
-            <xs:element name="image" type="tns:imageType" minOccurs="0" maxOccurs="unbounded"/>
-        </xs:sequence>
-    </xs:complexType>
-
-    <xs:complexType name="commentType">
-        <xs:sequence>
-            <xs:element name="username" type="xs:string" nillable="true"/>
-            <xs:element name="date" type="xs:string" nillable="true"/>
-            <xs:element name="text" type="xs:string" nillable="true"/>
-            <xs:element name="degree" type="xs:int" nillable="true"/>
-        </xs:sequence>
-    </xs:complexType>
+    <!--<xs:complexType name="commentType">-->
+        <!--<xs:sequence>-->
+            <!--<xs:element name="username" type="xs:string" nillable="true"/>-->
+            <!--<xs:element name="date" type="xs:string" nillable="true"/>-->
+            <!--<xs:element name="text" type="xs:string" nillable="true"/>-->
+            <!--<xs:element name="degree" type="xs:int" nillable="true"/>-->
+        <!--</xs:sequence>-->
+    <!--</xs:complexType>-->
 
     <xs:complexType name="imageType">
         <xs:sequence>
             <xs:element name="location" type="xs:string" nillable="true"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="modelType">
+        <xs:sequence>
+            <xs:element name="id" type="xs:string"/>
+            <xs:element name="vendor" type="xs:string"/>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="description" type="xs:string"/>
+            <xs:element name="price" type="xs:int"/>
+            <xs:element name="views" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="detailType">
+        <xs:sequence>
+            <xs:element name="detailId" type="xs:string"/>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="value" type="xs:string"/>
+            <xs:element name="unit" type="xs:string"/>
+            <xs:element name="parentDetailId" type="xs:string"/>
         </xs:sequence>
     </xs:complexType>
 </xs:schema>

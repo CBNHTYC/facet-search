@@ -1,7 +1,8 @@
-package ru.kubsu.fs.services;
+package ru.kubsu.fs.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dozer.DozerBeanMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.kubsu.fs.entity.Detail;
 import ru.kubsu.fs.model.DetailsEnum;
@@ -15,11 +16,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class DetailsMapper {
+    @Autowired
+    private DozerBeanMapper dozerBeanMapper;
+
     public List<DetailDtoType> map(List<Detail> detailList) {
-        DozerBeanMapper dozerBeanMapper= new DozerBeanMapper();
 
         List<DetailDtoType> dtoTypeList = detailList.stream().map(detail -> dozerBeanMapper.map(detail, DetailDtoType.class)).collect(Collectors.toList());
-        dtoTypeList = dtoTypeList.stream().filter(detailDtoType -> Arrays.stream(DetailsEnum.getNames()).anyMatch(detailDtoType.getName()::equals)).collect(Collectors.toList());
+        dtoTypeList = dtoTypeList.stream().filter(detailDtoType -> DetailsEnum.getRuNames().stream().anyMatch(detailDtoType.getName()::equals)).collect(Collectors.toList());
         this.addAdditionalDetails(dtoTypeList);
 
         return dtoTypeList;

@@ -53,11 +53,6 @@
 
     <xs:complexType name="simpleParameterType">
         <xs:sequence>
-            <xs:element name="Type" type="xs:string">
-                    <xs:annotation>
-                        <xs:documentation>Тип передаваемых данных</xs:documentation>
-                    </xs:annotation>
-            </xs:element>
             <xs:element name="Name" type="xs:string"/>
             <xs:element name="Value" type="xs:string"/>
         </xs:sequence>
@@ -65,11 +60,6 @@
 
     <xs:complexType name="rangeParameterType">
         <xs:sequence>
-            <xs:element name="Type" type="xs:string">
-                <xs:annotation>
-                    <xs:documentation>Тип передаваемых данных</xs:documentation>
-                </xs:annotation>
-            </xs:element>
             <xs:element name="Name" type="xs:string"/>
             <xs:element name="ValueBegin" type="xs:string"/>
             <xs:element name="ValueEnd" type="xs:string"/>

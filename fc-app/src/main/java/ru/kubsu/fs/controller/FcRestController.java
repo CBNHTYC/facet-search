@@ -12,13 +12,15 @@ import ru.kubsu.fs.schema.DetailsDto.DetailsDtoType;
 import ru.kubsu.fs.schema.DetailsDto.ObjectFactory;
 import ru.kubsu.fs.schema.QueryParameters.TransferQueryParametersType;
 import ru.kubsu.fs.schema.ResponseParameters.TransferQueryResultType;
-import ru.kubsu.fs.services.DetailsMapper;
-import ru.kubsu.fs.services.TransferQueryResultTypeMapper;
+import ru.kubsu.fs.service.ElastUpdate;
+import ru.kubsu.fs.utils.DetailsMapper;
+import ru.kubsu.fs.utils.TransferQueryResultTypeMapper;
 
 import javax.xml.bind.*;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -27,35 +29,35 @@ import java.util.stream.StreamSupport;
 @RequestMapping(path = "/fc/rest", produces = MediaType.APPLICATION_XML_VALUE)
 public class FcRestController {
 
-    private final
-    FcDao fcDao;
-
+    private final FcDao fcDao;
     private final TransferQueryResultTypeMapper queryResultTypeMapper;
-
     private final DetailsMapper detailsMapper;
+    private final ElastUpdate update;
+
 
     @Autowired
-    public FcRestController(FcDao fcDao, TransferQueryResultTypeMapper queryResultTypeMapper, DetailsMapper detailsMapper) {
+    public FcRestController(FcDao fcDao, TransferQueryResultTypeMapper queryResultTypeMapper, DetailsMapper detailsMapper, ElastUpdate update) {
         this.fcDao = fcDao;
         this.queryResultTypeMapper = queryResultTypeMapper;
         this.detailsMapper = detailsMapper;
+        this.update = update;
     }
 
-    @GetMapping(path = "getPhones", produces = MediaType.APPLICATION_XML_VALUE)
-    public ResponseEntity<String> getProject(@RequestBody String queryXml) throws JAXBException, SQLException {
-        JAXBContext context = JAXBContext.newInstance(TransferQueryParametersType.class.getPackage().getName());
-        Unmarshaller unmarshaller = context.createUnmarshaller();
-        JAXBElement element = (JAXBElement)unmarshaller.unmarshal(new StringReader(queryXml));
-        TransferQueryParametersType request = (TransferQueryParametersType) element.getValue();
-        List<Model> modelList= fcDao.getModelList(request);
-
-        StringWriter sw = new StringWriter();
-        TransferQueryResultType resultType = queryResultTypeMapper.map(modelList);
-        context = JAXBContext.newInstance(TransferQueryResultType.class.getPackage().getName());
-        Marshaller marshaller = context.createMarshaller();
-        marshaller.marshal(resultType, sw);
-        return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
-    }
+//    @GetMapping(path = "getPhones", produces = MediaType.APPLICATION_XML_VALUE)
+//    public ResponseEntity<String> getProject(@RequestBody String queryXml) throws JAXBException, SQLException {
+//        JAXBContext context = JAXBContext.newInstance(TransferQueryParametersType.class.getPackage().getName());
+//        Unmarshaller unmarshaller = context.createUnmarshaller();
+//        JAXBElement element = (JAXBElement)unmarshaller.unmarshal(new StringReader(queryXml));
+//        TransferQueryParametersType request = (TransferQueryParametersType) element.getValue();
+//        List<Model> modelList= fcDao.getModelList(request);
+//
+//        StringWriter sw = new StringWriter();
+//        TransferQueryResultType resultType = queryResultTypeMapper.map(modelList);
+//        context = JAXBContext.newInstance(TransferQueryResultType.class.getPackage().getName());
+//        Marshaller marshaller = context.createMarshaller();
+//        marshaller.marshal(resultType, sw);
+//        return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
+//    }
 
     @GetMapping(path = "getDetails", produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> getDetails(@RequestParam("category") String category) throws JAXBException {
@@ -65,9 +67,7 @@ public class FcRestController {
 
         DetailsDtoType detailsDtoType = objectFactory.createDetailsDtoType();
 
-        List<Detail> detailList = StreamSupport
-                .stream(fcDao.getAllDetails().spliterator(), false)
-                .collect(Collectors.toList());
+        List<Detail> detailList = fcDao.getAllDetails();
 
         detailsDtoType.getDetailDto().addAll(detailsMapper.map(detailList));
 
@@ -77,5 +77,9 @@ public class FcRestController {
         return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
     }
 
-
+    @PostMapping(path = "uploadPhones")
+    public ResponseEntity<HttpStatus> uploadPhones() {
+        update.writeAllPhones();
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
