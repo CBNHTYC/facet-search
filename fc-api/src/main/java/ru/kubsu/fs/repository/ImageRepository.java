@@ -8,4 +8,5 @@ import java.util.List;
 
 @Repository
 public interface ImageRepository extends CrudRepository<Image, Long> {
+    List<Image> findAllByModelModelId(Long modelId);
 }

@@ -15,17 +15,13 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.kubsu.fs.entity.ElastModel;
-import ru.kubsu.fs.model.DetailsEnum;
 import ru.kubsu.fs.schema.QueryParameters.RangeParameterType;
 import ru.kubsu.fs.schema.QueryParameters.SimpleParameterType;
 import ru.kubsu.fs.schema.QueryParameters.TransferQueryParametersType;
-import ru.kubsu.fs.schema.ResponseParameters.PhoneType;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -48,14 +44,13 @@ public class ElastDao {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public void putPhoneRecordList(List<PhoneType> phones) {
-        Optional.ofNullable(phones).orElse(Collections.emptyList())
+    public void putPhoneRecordList(List<ElastModel> elastModelList) {
+        Optional.ofNullable(elastModelList).orElse(Collections.emptyList())
                 .forEach(this::putPhoneRecord);
     }
 
-    public void putPhoneRecord(PhoneType phone) {
+    public void putPhoneRecord(ElastModel elastModel) {
         try {
-            ElastModel elastModel = mapElastModel(phone);
             try {
                 String eventJson = objectMapper.writeValueAsString(elastModel);
                 IndexRequest request = new IndexRequest(EVENT_LOG_INDEX_ALIAS, "phone");
@@ -100,22 +95,4 @@ public class ElastDao {
 
         return Arrays.stream(searchResponse.getHits().getHits()).map(hit -> new DozerBeanMapper().map(hit.getSourceAsMap(), ElastModel.class)).collect(Collectors.toList());
     }
-
-    private ElastModel mapElastModel(PhoneType phone) {
-        ElastModel elastModel = new ElastModel();
-        elastModel.setModelId(phone.getModel().getId());
-        elastModel.setVendor(phone.getModel().getVendor());
-        elastModel.setModelName(phone.getModel().getName());
-        elastModel.setDescription(phone.getModel().getDescription());
-        elastModel.setPrice(phone.getModel().getPrice());
-        elastModel.setViews(phone.getModel().getViews());
-
-        elastModel.setAccumulator(phone.getDetails().stream().filter(detailType -> detailType.getName().equals(DetailsEnum.ACCUMULATOR.getValue().getRu())).findAny().get().getValue());
-        elastModel.setDiagonal(phone.getDetails().stream().filter(detailType -> detailType.getName().equals(DetailsEnum.DIAGONAL.getValue().getRu())).findAny().get().getValue());
-        elastModel.setRam(phone.getDetails().stream().filter(detailType -> detailType.getName().equals(DetailsEnum.RAM.getValue().getRu())).findAny().get().getValue());
-        elastModel.setSim(phone.getDetails().stream().filter(detailType -> detailType.getName().equals(DetailsEnum.SIM.getValue().getRu())).findAny().get().getValue());
-
-        return elastModel;
-    }
-
 }

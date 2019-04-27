@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.kubsu.fs.entity.Detail;
 import ru.kubsu.fs.entity.ElastModel;
-import ru.kubsu.fs.entity.Model;
 import ru.kubsu.fs.repository.ElastDao;
 import ru.kubsu.fs.repository.FcDao;
 import ru.kubsu.fs.schema.DetailsDto.DetailsDtoType;
@@ -15,32 +14,27 @@ import ru.kubsu.fs.schema.DetailsDto.ObjectFactory;
 import ru.kubsu.fs.schema.QueryParameters.TransferQueryParametersType;
 import ru.kubsu.fs.schema.ResponseParameters.TransferQueryResultType;
 import ru.kubsu.fs.service.ElastUpdate;
-import ru.kubsu.fs.utils.DetailsMapper;
-import ru.kubsu.fs.utils.TransferQueryResultTypeMapper;
+import ru.kubsu.fs.utils.TransferQueryResultTypeTransformer;
 
 import javax.xml.bind.*;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @RestController
 @RequestMapping(path = "/fc/rest", produces = MediaType.APPLICATION_XML_VALUE)
 public class FcRestController {
 
     private final FcDao fcDao;
-    private final TransferQueryResultTypeMapper queryResultTypeMapper;
+    private final TransferQueryResultTypeTransformer queryResultTypeMapper;
     private final DetailsMapper detailsMapper;
     private final ElastUpdate update;
     private final ElastDao elastDao;
 
 
     @Autowired
-    public FcRestController(FcDao fcDao, TransferQueryResultTypeMapper queryResultTypeMapper, DetailsMapper detailsMapper, ElastUpdate update, ElastDao elastDao) {
+    public FcRestController(FcDao fcDao, TransferQueryResultTypeTransformer queryResultTypeMapper, DetailsMapper detailsMapper, ElastUpdate update, ElastDao elastDao) {
         this.fcDao = fcDao;
         this.queryResultTypeMapper = queryResultTypeMapper;
         this.detailsMapper = detailsMapper;
@@ -49,37 +43,19 @@ public class FcRestController {
     }
 
     @GetMapping(path = "getPhones", produces = MediaType.APPLICATION_XML_VALUE)
-    public ResponseEntity<String> getProject(@RequestBody String queryXml) throws JAXBException, SQLException, IOException {
+    public ResponseEntity<String> getProject(@RequestBody String queryXml) throws JAXBException, IOException {
         Unmarshaller unmarshaller = JAXBContext.newInstance(TransferQueryParametersType.class.getPackage().getName()).createUnmarshaller();
         JAXBElement element = (JAXBElement) unmarshaller.unmarshal(new StringReader(queryXml));
         TransferQueryParametersType request = (TransferQueryParametersType) element.getValue();
         List<ElastModel> modelList = elastDao.getPhonesByParameters(request);
 
         StringWriter sw = new StringWriter();
-        TransferQueryResultType resultType = queryResultTypeMapper.map(modelList);
-        context = JAXBContext.newInstance(TransferQueryResultType.class.getPackage().getName());
-        Marshaller marshaller = context.createMarshaller();
+        TransferQueryResultType resultType = queryResultTypeMapper.transform(modelList);
+        Marshaller marshaller = JAXBContext.newInstance(TransferQueryResultType.class.getPackage().getName()).createMarshaller();
         marshaller.marshal(resultType, sw);
         return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
 
     }
-
-
-//    @GetMapping(path = "getPhones", produces = MediaType.APPLICATION_XML_VALUE)
-//    public ResponseEntity<String> getProject(@RequestBody String queryXml) throws JAXBException, SQLException {
-//        JAXBContext context = JAXBContext.newInstance(TransferQueryParametersType.class.getPackage().getName());
-//        Unmarshaller unmarshaller = context.createUnmarshaller();
-//        JAXBElement element = (JAXBElement)unmarshaller.unmarshal(new StringReader(queryXml));
-//        TransferQueryParametersType request = (TransferQueryParametersType) element.getValue();
-//        List<Model> modelList= fcDao.getModelList(request);
-//
-//        StringWriter sw = new StringWriter();
-//        TransferQueryResultType resultType = queryResultTypeMapper.map(modelList);
-//        context = JAXBContext.newInstance(TransferQueryResultType.class.getPackage().getName());
-//        Marshaller marshaller = context.createMarshaller();
-//        marshaller.marshal(resultType, sw);
-//        return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
-//    }
 
     @GetMapping(path = "getDetails", produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> getDetails(@RequestParam("category") String category) throws JAXBException {

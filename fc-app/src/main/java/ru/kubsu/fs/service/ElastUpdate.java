@@ -2,32 +2,29 @@ package ru.kubsu.fs.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.kubsu.fs.entity.Detail;
 import ru.kubsu.fs.entity.Model;
 import ru.kubsu.fs.repository.ElastDao;
 import ru.kubsu.fs.repository.FcDao;
-import ru.kubsu.fs.schema.ResponseParameters.PhoneType;
-import ru.kubsu.fs.utils.PhoneTypeMapper;
+import ru.kubsu.fs.utils.ElastModelMapper;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ElastUpdate {
 
-    @Autowired
-    private FcDao fcDao;
-    @Autowired
-    private PhoneTypeMapper phoneTypeMapper;
-    @Autowired
-    private ElastDao elastDao;
+    private final FcDao fcDao;
+    private final ElastDao elastDao;
+    private final ElastModelMapper elastModelMapper;
 
-    public void writeAllPhones () {
-        List<PhoneType> phoneTypeList;
+    @Autowired
+    public ElastUpdate(FcDao fcDao, ElastDao elastDao, ElastModelMapper elastModelMapper) {
+        this.fcDao = fcDao;
+        this.elastDao = elastDao;
+        this.elastModelMapper = elastModelMapper;
+    }
+
+    public void writeAllPhones() {
         List<Model> modelList = fcDao.getAllModels();
-        List<Detail> detailList = fcDao.getAllDetails();
-        phoneTypeList = modelList.stream().map(model -> phoneTypeMapper.map(model, detailList)).collect(Collectors.toList());
-
-        elastDao.putPhoneRecordList(phoneTypeList);
+        elastDao.putPhoneRecordList(elastModelMapper.map(modelList));
     }
 }

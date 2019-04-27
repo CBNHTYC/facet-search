@@ -3,6 +3,8 @@ package ru.kubsu.fs.entity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 public class ElastModel {
@@ -16,4 +18,5 @@ public class ElastModel {
     private String description;
     private Integer price;
     private Integer views;
+    private List<String> imageLocationList;
 }

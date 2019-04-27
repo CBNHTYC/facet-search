@@ -5,10 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kubsu.fs.entity.Detail;
+import ru.kubsu.fs.entity.Image;
 import ru.kubsu.fs.entity.Model;
-import ru.kubsu.fs.schema.QueryParameters.RangeParameterType;
-import ru.kubsu.fs.schema.QueryParameters.SimpleParameterType;
-import ru.kubsu.fs.schema.QueryParameters.TransferQueryParametersType;
 
 import java.util.List;
 
@@ -93,10 +91,17 @@ public class FcDao {
 //    }
 
     @Transactional
-    public List<Model> getAllModels() { return modelRepository.findAll(); }
+    public List<Model> getAllModels() {
+        return modelRepository.findAll();
+    }
 
     @Transactional
     public List<Detail> getAllDetails() {
         return detailsRepository.findAll();
+    }
+
+    @Transactional
+    public List<Image> getImagesByModelId(Long modelId) {
+        return imageRepository.findAllByModelModelId(modelId);
     }
 }
