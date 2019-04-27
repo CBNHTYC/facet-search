@@ -38,7 +38,7 @@
     <xs:complexType name="PhoneType">
         <xs:sequence>
             <xs:element name="model" type="tns:modelType"/>
-            <xs:element name="details" type="tns:detailType" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="details" type="tns:detailType"/>
             <xs:element name="images" type="tns:imageType" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
     </xs:complexType>
@@ -71,11 +71,10 @@
 
     <xs:complexType name="detailType">
         <xs:sequence>
-            <xs:element name="detailId" type="xs:string"/>
-            <xs:element name="name" type="xs:string"/>
-            <xs:element name="value" type="xs:string"/>
-            <xs:element name="unit" type="xs:string"/>
-            <xs:element name="parentDetailId" type="xs:string"/>
+            <xs:element name="ram" type="xs:string"/>
+            <xs:element name="diagonal" type="xs:string"/>
+            <xs:element name="accumulator" type="xs:string"/>
+            <xs:element name="sim" type="xs:string"/>
         </xs:sequence>
     </xs:complexType>
 </xs:schema>
