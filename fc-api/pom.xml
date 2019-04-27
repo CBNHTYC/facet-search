@@ -21,97 +21,15 @@
             <artifactId>jaxb2-fluent-api</artifactId>
             <version>3.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.9.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.9.0</version>
+        </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>2.4</version>
-                <executions>
-                    <execution>
-                        <id>generate-transfer_query_parameters</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                        <configuration>
-                            <!--<extension>true</extension> todo включить, если не заработает-->
-                            <arguments>-Xannotate</arguments>
-                            <sources>
-                                ${project.basedir}/src/main/resources/xsd/TransferQueryParameters.xsd
-                            </sources>
-                            <encoding>UTF-8</encoding>
-                            <packageName>ru.kubsu.fs.schema.QueryParameters</packageName>
-                            <outputDirectory>src/main/java</outputDirectory>
-                            <clearOutputDir>false</clearOutputDir>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>generate-transfer_query_result</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                        <configuration>
-                            <!--<extension>true</extension> todo включить, если не заработает-->
-                            <arguments>-Xannotate</arguments>
-                            <sources>
-                                ${project.basedir}/src/main/resources/xsd/TransferQueryResult.xsd
-                            </sources>
-                            <encoding>UTF-8</encoding>
-                            <packageName>ru.kubsu.fs.schema.ResponseParameters</packageName>
-                            <outputDirectory>src/main/java</outputDirectory>
-                            <clearOutputDir>false</clearOutputDir>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>generate-detail_dto</id>
-                        <goals>
-                            <goal>xjc</goal>
-                        </goals>
-                        <configuration>
-                            <!--<extension>true</extension> todo включить, если не заработает-->
-                            <arguments>-Xannotate</arguments>
-                            <sources>
-                                ${project.basedir}/src/main/resources/xsd/DetailDto.xsd
-                            </sources>
-                            <encoding>UTF-8</encoding>
-                            <packageName>ru.kubsu.fs.schema.DetailsDto</packageName>
-                            <outputDirectory>src/main/java</outputDirectory>
-                            <clearOutputDir>false</clearOutputDir>
-                        </configuration>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.jvnet.jaxb2_commons</groupId>
-                        <artifactId>jaxb2-basics-annotate</artifactId>
-                        <version>0.6.4</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>com.sun.codemodel</groupId>
-                        <artifactId>codemodel</artifactId>
-                        <version>2.6</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>${project.basedir}/src/main/java/ru.kubsu.fs.schema</directory>
-                            <includes>
-                                <include>**/*.java</include>
-                            </includes>
-                            <followSymlinks>false</followSymlinks>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

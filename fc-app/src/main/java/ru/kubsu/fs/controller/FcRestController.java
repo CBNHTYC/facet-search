@@ -1,30 +1,29 @@
 package ru.kubsu.fs.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.kubsu.fs.dto.details.DetailsDto;
+import ru.kubsu.fs.dto.query.ParametrizedQuery;
+import ru.kubsu.fs.dto.response.PhonesResponse;
 import ru.kubsu.fs.entity.Detail;
 import ru.kubsu.fs.entity.ElastModel;
 import ru.kubsu.fs.repository.ElastDao;
 import ru.kubsu.fs.repository.FcDao;
-import ru.kubsu.fs.schema.DetailsDto.DetailsDtoType;
-import ru.kubsu.fs.schema.DetailsDto.ObjectFactory;
-import ru.kubsu.fs.schema.QueryParameters.TransferQueryParametersType;
-import ru.kubsu.fs.schema.ResponseParameters.TransferQueryResultType;
 import ru.kubsu.fs.service.ElastUpdate;
 import ru.kubsu.fs.utils.DetailsMapper;
 import ru.kubsu.fs.utils.TransferQueryResultTypeTransformer;
 
-import javax.xml.bind.*;
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/fc/rest", produces = MediaType.APPLICATION_XML_VALUE)
+@RequestMapping(path = "/fc/rest", produces = MediaType.APPLICATION_JSON_VALUE)
 public class FcRestController {
 
     private final FcDao fcDao;
@@ -45,37 +44,27 @@ public class FcRestController {
         this.elastDao = elastDao;
     }
 
-    @GetMapping(path = "getPhones", produces = MediaType.APPLICATION_XML_VALUE)
-    public ResponseEntity<String> getProject(@RequestBody String queryXml) throws JAXBException, IOException {
-        Unmarshaller unmarshaller = JAXBContext.newInstance(TransferQueryParametersType.class.getPackage().getName()).createUnmarshaller();
-        JAXBElement element = (JAXBElement) unmarshaller.unmarshal(new StringReader(queryXml));
-        TransferQueryParametersType request = (TransferQueryParametersType) element.getValue();
-        List<ElastModel> modelList = elastDao.getPhonesByParameters(request);
-
+    @GetMapping(path = "getPhones", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getProject(@RequestBody String queryJson) throws JAXBException, IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
         StringWriter sw = new StringWriter();
-        TransferQueryResultType resultType = queryResultTypeMapper.transform(modelList);
-        Marshaller marshaller = JAXBContext.newInstance(TransferQueryResultType.class.getPackage().getName()).createMarshaller();
-        marshaller.marshal(resultType, sw);
+        ParametrizedQuery query = objectMapper.readValue(queryJson, ParametrizedQuery.class);
+        List<ElastModel> modelList = elastDao.getPhonesByParameters(query);
+        PhonesResponse phonesResponse = queryResultTypeMapper.transform(modelList);
+        objectMapper.writeValue(sw, phonesResponse);
         return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
-
     }
 
-    @GetMapping(path = "getDetails", produces = MediaType.APPLICATION_XML_VALUE)
-    public ResponseEntity<String> getDetails(@RequestParam("category") String category) throws JAXBException {
+    @GetMapping(path = "getDetails", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getDetails(@RequestParam("category") String category) throws IOException {
         switch (category) {
             case PHONES:
-                JAXBContext context = JAXBContext.newInstance(DetailsDtoType.class.getPackage().getName(),
-                        DetailsDtoType.class.getClassLoader());
-                ObjectFactory objectFactory = new ObjectFactory();
-                DetailsDtoType detailsDtoType = objectFactory.createDetailsDtoType();
-
+                ObjectMapper objectMapper = new ObjectMapper();
+                DetailsDto detailsDto = new DetailsDto();
                 List<Detail> detailList = fcDao.getAllDetails();
-
-                detailsDtoType.getDetailDto().addAll(detailsMapper.map(detailList));
-
+                detailsDto.setDetailDtoList(detailsMapper.map(detailList));
                 StringWriter sw = new StringWriter();
-                Marshaller marshaller = context.createMarshaller();
-                marshaller.marshal(detailsDtoType, sw);
+                objectMapper.writeValue(sw, detailsDto);
                 return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
             default:
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);

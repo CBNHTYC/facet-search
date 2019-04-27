@@ -11,6 +11,7 @@ public class ElastModel {
     private String modelId;
     private String vendor;
     private String modelName;
+    private String type;
     private String diagonal;
     private String ram;
     private String accumulator;

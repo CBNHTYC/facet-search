@@ -18,10 +18,10 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import ru.kubsu.fs.dto.query.ParametrizedQuery;
+import ru.kubsu.fs.dto.query.RangeParameter;
+import ru.kubsu.fs.dto.query.SimpleParameter;
 import ru.kubsu.fs.entity.ElastModel;
-import ru.kubsu.fs.schema.QueryParameters.RangeParameterType;
-import ru.kubsu.fs.schema.QueryParameters.SimpleParameterType;
-import ru.kubsu.fs.schema.QueryParameters.TransferQueryParametersType;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -65,25 +65,25 @@ public class ElastDao {
         }
     }
 
-    public List<ElastModel> getPhonesByParameters(TransferQueryParametersType queryParametersType) throws IOException {
+    public List<ElastModel> getPhonesByParameters(ParametrizedQuery parametrizedQuery) throws IOException {
         SearchRequest searchRequest = new SearchRequest("phones");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         QueryBuilder query = QueryBuilders.boolQuery()
                 .must(QueryBuilders.matchAllQuery());
 
-        Optional<List<SimpleParameterType>> optionalSimpleTypes = Optional.ofNullable(queryParametersType.getQueryParameters().getSimpleParameter());
+        Optional<List<SimpleParameter>> optionalSimpleTypes = Optional.ofNullable(parametrizedQuery.getSimpleParameter());
         if (optionalSimpleTypes.isPresent()) {
-            List<SimpleParameterType> simpleParameterTypeList = optionalSimpleTypes.get();
-            simpleParameterTypeList.forEach(simpleParameterType -> ((BoolQueryBuilder) query).filter(QueryBuilders.matchQuery(simpleParameterType.getName(), simpleParameterType.getValue())));
+            List<SimpleParameter> simpleParameterList = optionalSimpleTypes.get();
+            simpleParameterList.forEach(simpleParameter -> ((BoolQueryBuilder) query).filter(QueryBuilders.matchQuery(simpleParameter.getName(), simpleParameter.getValue())));
         }
 
-        Optional<List<RangeParameterType>> optionalRangeTypes = Optional.ofNullable(queryParametersType.getQueryParameters().getRangeParameter());
+        Optional<List<RangeParameter>> optionalRangeTypes = Optional.ofNullable(parametrizedQuery.getRangeParameter());
         if (optionalRangeTypes.isPresent()) {
-            List<RangeParameterType> rangeParameterTypeList = optionalRangeTypes.get();
-            rangeParameterTypeList.forEach(rangeParameterType -> {
-                RangeQueryBuilder rangeQuery = QueryBuilders.rangeQuery(rangeParameterType.getName());
-                rangeQuery.from(rangeParameterType.getValueBegin());
-                rangeQuery.to(rangeParameterType.getValueEnd());
+            List<RangeParameter> rangeParameterList = optionalRangeTypes.get();
+            rangeParameterList.forEach(rangeParameter -> {
+                RangeQueryBuilder rangeQuery = QueryBuilders.rangeQuery(rangeParameter.getName());
+                rangeQuery.from(rangeParameter.getValueBegin());
+                rangeQuery.to(rangeParameter.getValueEnd());
                 ((BoolQueryBuilder) query).filter(rangeQuery);
             });
         }

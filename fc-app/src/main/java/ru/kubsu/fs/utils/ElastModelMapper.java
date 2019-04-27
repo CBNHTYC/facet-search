@@ -26,6 +26,7 @@ public class ElastModelMapper {
         elastModel.setPrice(model.getPrice());
         elastModel.setViews(model.getViews());
 
+        elastModel.setType(model.getDetailValueList().stream().filter(detailValue -> DetailsEnum.TYPE.getValue().getRu().equals(detailValue.getDetail().getName())).findFirst().get().getValue());
         elastModel.setAccumulator(model.getDetailValueList().stream().filter(detailValue -> DetailsEnum.ACCUMULATOR.getValue().getRu().equals(detailValue.getDetail().getName())).findFirst().get().getValue());
         elastModel.setDiagonal(model.getDetailValueList().stream().filter(detailValue -> DetailsEnum.DIAGONAL.getValue().getRu().equals(detailValue.getDetail().getName())).findFirst().get().getValue());
         elastModel.setRam(model.getDetailValueList().stream().filter(detailValue -> DetailsEnum.RAM.getValue().getRu().equals(detailValue.getDetail().getName())).findFirst().get().getValue());
