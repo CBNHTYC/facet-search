@@ -14,6 +14,7 @@ import ru.kubsu.fs.schema.DetailsDto.ObjectFactory;
 import ru.kubsu.fs.schema.QueryParameters.TransferQueryParametersType;
 import ru.kubsu.fs.schema.ResponseParameters.TransferQueryResultType;
 import ru.kubsu.fs.service.ElastUpdate;
+import ru.kubsu.fs.utils.DetailsMapper;
 import ru.kubsu.fs.utils.TransferQueryResultTypeTransformer;
 
 import javax.xml.bind.*;
@@ -31,6 +32,8 @@ public class FcRestController {
     private final DetailsMapper detailsMapper;
     private final ElastUpdate update;
     private final ElastDao elastDao;
+
+    private final String PHONES = "phones";
 
 
     @Autowired
@@ -59,20 +62,24 @@ public class FcRestController {
 
     @GetMapping(path = "getDetails", produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> getDetails(@RequestParam("category") String category) throws JAXBException {
-        JAXBContext context = JAXBContext.newInstance(DetailsDtoType.class.getPackage().getName(),
-                DetailsDtoType.class.getClassLoader());
-        ObjectFactory objectFactory = new ObjectFactory();
+        switch (category) {
+            case PHONES:
+                JAXBContext context = JAXBContext.newInstance(DetailsDtoType.class.getPackage().getName(),
+                        DetailsDtoType.class.getClassLoader());
+                ObjectFactory objectFactory = new ObjectFactory();
+                DetailsDtoType detailsDtoType = objectFactory.createDetailsDtoType();
 
-        DetailsDtoType detailsDtoType = objectFactory.createDetailsDtoType();
+                List<Detail> detailList = fcDao.getAllDetails();
 
-        List<Detail> detailList = fcDao.getAllDetails();
+                detailsDtoType.getDetailDto().addAll(detailsMapper.map(detailList));
 
-        detailsDtoType.getDetailDto().addAll(detailsMapper.map(detailList));
-
-        StringWriter sw = new StringWriter();
-        Marshaller marshaller = context.createMarshaller();
-        marshaller.marshal(detailsDtoType, sw);
-        return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
+                StringWriter sw = new StringWriter();
+                Marshaller marshaller = context.createMarshaller();
+                marshaller.marshal(detailsDtoType, sw);
+                return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
+            default:
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @PostMapping(path = "uploadPhones")
