@@ -1,6 +1,7 @@
 package ru.kubsu.fs.repository;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,7 @@ import ru.kubsu.fs.dto.query.SimpleParameter;
 import ru.kubsu.fs.entity.ElastModel;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
@@ -29,8 +30,21 @@ public class ElastDaoTest {
         SimpleParameter simpleParameter = new SimpleParameter();
         simpleParameter.setName("vendor");
         simpleParameter.setValue("acer");
-        parametrizedQuery.setSimpleParameter(Arrays.asList(simpleParameter));
+        parametrizedQuery.setSimpleParameter(Collections.singletonList(simpleParameter));
         List<ElastModel> elastModelList = elastDao.getPhonesByParameters(parametrizedQuery);
         Assert.assertTrue(elastModelList.size() > 0);
+    }
+
+    @Test
+    @Ignore
+    public void getPhoneById() {
+        List<ElastModel> elastModel = null;
+
+        try {
+            elastModel = elastDao.getMostViewedPhones();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        Assert.assertNotNull(elastModel);
     }
 }

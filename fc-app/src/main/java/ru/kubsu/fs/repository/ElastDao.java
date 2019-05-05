@@ -1,12 +1,16 @@
 package ru.kubsu.fs.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.dozer.DozerBeanMapper;
+import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
@@ -14,13 +18,17 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.kubsu.fs.dto.query.ParametrizedQuery;
 import ru.kubsu.fs.dto.query.RangeParameter;
 import ru.kubsu.fs.dto.query.SimpleParameter;
+import ru.kubsu.fs.entity.ElastDetailValue;
 import ru.kubsu.fs.entity.ElastModel;
 
 import java.io.IOException;
@@ -36,7 +44,12 @@ public class ElastDao {
     @Value("${elasticsearch.request.size}")
     Integer requestSize;
 
-    public static final String EVENT_LOG_INDEX_ALIAS = "phones";
+    @Value("${elasticsearch.request.plate.size}")
+    Integer plateRequestSize;
+
+    public static final String PHONES_INDEX_ALIAS = "phones";
+    public static final String MODEL_ID_FIELD = "modelId";
+    public static final String VIEW_FIELD = "views";
 
     @Autowired
     private RestHighLevelClient restHighLevelClient;
@@ -44,29 +57,80 @@ public class ElastDao {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private ActionListener<UpdateResponse> updateListener = new ActionListener<UpdateResponse>() {
+        @Override
+        public void onResponse(UpdateResponse updateResponse) {
+            log.info("Elastic document updated: " + updateResponse.getGetResult().getIndex() + updateResponse.getGetResult().getType() + updateResponse.getGetResult().getId() + "with status: " + updateResponse.status().getStatus());
+        }
+
+        @Override
+        public void onFailure(Exception e) {
+            log.error("Elastic document update failed: " + e.getMessage());
+        }
+    };
+
     public void putPhoneRecordList(List<ElastModel> elastModelList) {
         Optional.ofNullable(elastModelList).orElse(Collections.emptyList())
                 .forEach(this::putPhoneRecord);
     }
 
+    public void putDetailValueList(List<ElastDetailValue> elastDetailValueList, String detailName) {
+        Optional.ofNullable(elastDetailValueList).orElse(Collections.emptyList())
+                .forEach(elastDetailValue -> putDetailValue(elastDetailValue, detailName));
+    }
+
     public void putPhoneRecord(ElastModel elastModel) {
         try {
-            try {
-                String eventJson = objectMapper.writeValueAsString(elastModel);
-                IndexRequest request = new IndexRequest(EVENT_LOG_INDEX_ALIAS, "phone");
-                request.source(eventJson, XContentType.JSON);
-                IndexResponse indexResponse = restHighLevelClient.index(request, RequestOptions.DEFAULT);
-                log.debug(indexResponse.toString());
-            } catch (Exception e) {
-                log.warn("", e);
-            }
+            String phoneJson = objectMapper.writeValueAsString(elastModel);
+            IndexRequest request = new IndexRequest(PHONES_INDEX_ALIAS, "phone");
+            request.source(phoneJson, XContentType.JSON);
+            IndexResponse indexResponse = restHighLevelClient.index(request, RequestOptions.DEFAULT);
+            log.debug(indexResponse.toString());
         } catch (Exception ex) {
             log.warn("", ex);
         }
     }
 
+    public void putDetailValue(ElastDetailValue elastDetailValue, String detailName) {
+        try {
+            String detailJson = objectMapper.writeValueAsString(elastDetailValue);
+            IndexRequest request = new IndexRequest(detailName, "detailValue");
+            request.source(detailJson, XContentType.JSON);
+            IndexResponse indexResponse = restHighLevelClient.index(request, RequestOptions.DEFAULT);
+            log.debug(indexResponse.toString());
+        } catch (Exception ex) {
+            log.warn("", ex);
+        }
+    }
+
+    public ElastModel getPhoneById(String id) throws IOException, NotFoundException {
+        SearchRequest searchRequest = new SearchRequest(PHONES_INDEX_ALIAS);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        QueryBuilder query = QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchQuery(MODEL_ID_FIELD, id));
+
+        searchSourceBuilder.query(query);
+        searchSourceBuilder.size(requestSize);
+        searchRequest.source(searchSourceBuilder);
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+
+        Optional<SearchHit> optionalSearchHit = Arrays.stream(searchResponse.getHits().getHits()).findFirst();
+        if (optionalSearchHit.isPresent()) {
+            ElastModel elastModel = new DozerBeanMapper().map(optionalSearchHit.get().getSourceAsMap(), ElastModel.class);
+            elastModel.setViews(elastModel.getViews() + 1);
+
+            UpdateRequest updateRequest = new UpdateRequest(PHONES_INDEX_ALIAS, "phone", optionalSearchHit.get().getId());
+            String phoneJson = objectMapper.writeValueAsString(elastModel);
+            updateRequest.doc(phoneJson, XContentType.JSON);
+            restHighLevelClient.updateAsync(updateRequest, RequestOptions.DEFAULT, updateListener);
+            return elastModel;
+        } else {
+            throw new NotFoundException("Телефон с указанным id не найден");
+        }
+    }
+
     public List<ElastModel> getPhonesByParameters(ParametrizedQuery parametrizedQuery) throws IOException {
-        SearchRequest searchRequest = new SearchRequest("phones");
+        SearchRequest searchRequest = new SearchRequest(PHONES_INDEX_ALIAS);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         QueryBuilder query = QueryBuilders.boolQuery()
                 .must(QueryBuilders.matchAllQuery());
@@ -94,5 +158,35 @@ public class ElastDao {
         SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
 
         return Arrays.stream(searchResponse.getHits().getHits()).map(hit -> new DozerBeanMapper().map(hit.getSourceAsMap(), ElastModel.class)).collect(Collectors.toList());
+    }
+
+    public List<ElastModel> getMostViewedPhones() throws IOException {
+        SearchRequest searchRequest = new SearchRequest(PHONES_INDEX_ALIAS);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        QueryBuilder query = QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchAllQuery());
+
+
+        searchSourceBuilder.sort(new FieldSortBuilder(VIEW_FIELD).order(SortOrder.DESC));
+        searchSourceBuilder.query(query);
+        searchSourceBuilder.size(plateRequestSize);
+        searchRequest.source(searchSourceBuilder);
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+
+        return Arrays.stream(searchResponse.getHits().getHits()).map(hit -> new DozerBeanMapper().map(hit.getSourceAsMap(), ElastModel.class)).collect(Collectors.toList());
+    }
+
+    public List<ElastDetailValue> getDetaiValuesByDetailName(String name) throws IOException {
+        SearchRequest searchRequest = new SearchRequest(name);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        QueryBuilder query = QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchAllQuery());
+
+        searchSourceBuilder.query(query);
+        searchSourceBuilder.size(requestSize);
+        searchRequest.source(searchSourceBuilder);
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+
+        return Arrays.stream(searchResponse.getHits().getHits()).map(hit -> new DozerBeanMapper().map(hit.getSourceAsMap(), ElastDetailValue.class)).collect(Collectors.toList());
     }
 }

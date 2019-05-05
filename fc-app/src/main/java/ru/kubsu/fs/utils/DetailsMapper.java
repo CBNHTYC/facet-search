@@ -28,7 +28,7 @@ public class DetailsMapper {
 
     private void addAdditionalDetails( List<DetailDto> dtoTypeList) {
         DetailDto detailDto = new DetailDto();
-        detailDto.setDetailId(0);
+        detailDto.setDetailId(-1);
         detailDto.setParentDetailId(0);
         detailDto.setName("Производитель");
         dtoTypeList.add(detailDto);

@@ -9,6 +9,7 @@ import ru.kubsu.fs.entity.ElastModel;
 import ru.kubsu.fs.entity.Image;
 import ru.kubsu.fs.repository.FcDao;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,18 @@ public class TransferQueryResultTypeTransformer {
             imageListType.setImageLocations(fcDao.getImagesByModelId(Long.valueOf(phone.getModelId())).stream().map(Image::getLocation).collect(Collectors.toList()));
             return phoneType;
         }).collect(Collectors.toList()));
+        return phonesResponse;
+    }
+
+    public PhonesResponse transform(ElastModel elastModel) {
+        DozerBeanMapper dozerBeanMapper = new DozerBeanMapper();
+        PhonesResponse phonesResponse = new PhonesResponse();
+        PhoneType phoneType = new PhoneType();
+        ImageListType imageListType = new ImageListType();
+        phoneType.setModel(dozerBeanMapper.map(elastModel, ModelType.class));
+        phoneType.setDetails(dozerBeanMapper.map(elastModel, DetailType.class));
+        imageListType.setImageLocations(fcDao.getImagesByModelId(Long.valueOf(elastModel.getModelId())).stream().map(Image::getLocation).collect(Collectors.toList()));
+        phonesResponse.setPhoneTypeList(Collections.singletonList(phoneType));
         return phonesResponse;
     }
 }

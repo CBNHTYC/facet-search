@@ -7,26 +7,24 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.kubsu.fs.entity.Detail;
 import ru.kubsu.fs.entity.Image;
 import ru.kubsu.fs.entity.Model;
+import ru.kubsu.fs.entity.Vendor;
 
 import java.util.List;
 
 @Service
 public class FcDao {
-    private final JdbcModelRepositoryImpl jdbcPhoneRepositoryImpl;
+
     private final DetailsRepository detailsRepository;
     private final ModelRepository modelRepository;
     private final ImageRepository imageRepository;
+    private final VendorRepository vendorRepository;
 
     @Autowired
-    private ElastDao elastDao;
-
-
-    @Autowired
-    public FcDao(JdbcModelRepositoryImpl jdbcPhoneRepositoryImpl, DetailsRepository detailsRepository, ModelRepository modelRepository, @Qualifier("imageRepository") ImageRepository imageRepository) {
-        this.jdbcPhoneRepositoryImpl = jdbcPhoneRepositoryImpl;
+    public FcDao(DetailsRepository detailsRepository, ModelRepository modelRepository, @Qualifier("imageRepository") ImageRepository imageRepository, VendorRepository vendorRepository) {
         this.detailsRepository = detailsRepository;
         this.modelRepository = modelRepository;
         this.imageRepository = imageRepository;
+        this.vendorRepository = vendorRepository;
     }
 
 //    @Transactional
@@ -99,6 +97,9 @@ public class FcDao {
     public List<Detail> getAllDetails() {
         return detailsRepository.findAll();
     }
+
+    @Transactional
+    public List<Vendor> getAllVendors() { return vendorRepository.findAll(); }
 
     @Transactional
     public List<Image> getImagesByModelId(Long modelId) {

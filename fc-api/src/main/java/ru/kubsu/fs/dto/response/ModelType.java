@@ -8,11 +8,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ModelType {
     @JsonProperty
-    private String id;
+    private String modelId;
     @JsonProperty
     private String vendor;
     @JsonProperty
-    private String name;
+    private String modelName;
     @JsonProperty
     private String type;
     @JsonProperty
