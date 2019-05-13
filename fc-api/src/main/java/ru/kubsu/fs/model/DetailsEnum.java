@@ -16,7 +16,8 @@ public enum DetailsEnum {
     RAM(new DetailDictionary("Оперативная память", "ram")),
     ACCUMULATOR(new DetailDictionary("Емкость аккумулятора", "accumulator")),
     SIM(new DetailDictionary("Поддержка двух SIM-карт", "sim")),
-    TYPE(new DetailDictionary("Тип аппарата", "type"));
+    TYPE(new DetailDictionary("Тип аппарата", "type")),
+    POWER_TYPE(new DetailDictionary("Тип зарядного устройства", "powertype"));
 
     private final DetailDictionary value;
 

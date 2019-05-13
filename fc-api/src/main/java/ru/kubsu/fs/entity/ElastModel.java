@@ -9,13 +9,16 @@ import java.util.List;
 @NoArgsConstructor
 public class ElastModel {
     private String modelId;
+    private String category;
     private String vendor;
     private String modelName;
+    private String fullName;
     private String type;
     private String diagonal;
     private String ram;
     private String accumulator;
     private String sim;
+    private String powerType;
     private String description;
     private Integer price;
     private Integer views;

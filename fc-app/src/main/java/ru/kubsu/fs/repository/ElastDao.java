@@ -30,6 +30,7 @@ import ru.kubsu.fs.dto.query.RangeParameter;
 import ru.kubsu.fs.dto.query.SimpleParameter;
 import ru.kubsu.fs.entity.ElastDetailValue;
 import ru.kubsu.fs.entity.ElastModel;
+import ru.kubsu.fs.model.PhoneInfo;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -47,9 +48,22 @@ public class ElastDao {
     @Value("${elasticsearch.request.plate.size}")
     Integer plateRequestSize;
 
+    @Value("${elasticsearch.request.access.recommend.size}")
+    Integer accessSize;
+
     public static final String PHONES_INDEX_ALIAS = "phones";
     public static final String MODEL_ID_FIELD = "modelId";
     public static final String VIEW_FIELD = "views";
+
+    public static final String VENDOR_FIELD= "vendor";
+    public static final String MODEL_FIELD= "modelName";
+    public static final String DESCRIPTION_FIELD= "description";
+    public static final String POWER_TYPE_FIELD= "powerType";
+    public static final String DIAGONAL_FIELD= "diagonal";
+    public static final String CATEGORY_FIELD= "category";
+
+    public static final String POWER_CAT= "3";
+    public static final String CASE_CAT= "5";
 
     @Autowired
     private RestHighLevelClient restHighLevelClient;
@@ -99,11 +113,11 @@ public class ElastDao {
             IndexResponse indexResponse = restHighLevelClient.index(request, RequestOptions.DEFAULT);
             log.debug(indexResponse.toString());
         } catch (Exception ex) {
-            log.warn("", ex);
+            log.error("", ex);
         }
     }
 
-    public ElastModel getPhoneById(String id) throws IOException, NotFoundException {
+    public PhoneInfo getPhoneById(String id) throws IOException, NotFoundException {
         SearchRequest searchRequest = new SearchRequest(PHONES_INDEX_ALIAS);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         QueryBuilder query = QueryBuilders.boolQuery()
@@ -116,6 +130,7 @@ public class ElastDao {
 
         Optional<SearchHit> optionalSearchHit = Arrays.stream(searchResponse.getHits().getHits()).findFirst();
         if (optionalSearchHit.isPresent()) {
+            PhoneInfo phoneInfo = new PhoneInfo();
             ElastModel elastModel = new DozerBeanMapper().map(optionalSearchHit.get().getSourceAsMap(), ElastModel.class);
             elastModel.setViews(elastModel.getViews() + 1);
 
@@ -123,7 +138,17 @@ public class ElastDao {
             String phoneJson = objectMapper.writeValueAsString(elastModel);
             updateRequest.doc(phoneJson, XContentType.JSON);
             restHighLevelClient.updateAsync(updateRequest, RequestOptions.DEFAULT, updateListener);
-            return elastModel;
+
+            List<ElastModel> accessories = getPopAccess(DIAGONAL_FIELD, elastModel.getDiagonal(), CASE_CAT);
+            accessories.addAll(getPopAccess(POWER_TYPE_FIELD, elastModel.getPowerType(), POWER_CAT));
+
+            if (accessories.size() > 9) {
+                accessories = accessories.subList(0, 8);
+            }
+
+            phoneInfo.setPhone(elastModel);
+            phoneInfo.setAccessories(accessories);
+            return phoneInfo;
         } else {
             throw new NotFoundException("Телефон с указанным id не найден");
         }
@@ -166,7 +191,6 @@ public class ElastDao {
         QueryBuilder query = QueryBuilders.boolQuery()
                 .must(QueryBuilders.matchAllQuery());
 
-
         searchSourceBuilder.sort(new FieldSortBuilder(VIEW_FIELD).order(SortOrder.DESC));
         searchSourceBuilder.query(query);
         searchSourceBuilder.size(plateRequestSize);
@@ -188,5 +212,36 @@ public class ElastDao {
         SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
 
         return Arrays.stream(searchResponse.getHits().getHits()).map(hit -> new DozerBeanMapper().map(hit.getSourceAsMap(), ElastDetailValue.class)).collect(Collectors.toList());
+    }
+
+    public List<ElastModel> fullTextSearch(String textQuery) throws IOException {
+        SearchRequest searchRequest = new SearchRequest(PHONES_INDEX_ALIAS);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        QueryBuilder query = QueryBuilders.boolQuery()
+                .must(QueryBuilders.multiMatchQuery(textQuery, MODEL_FIELD, VENDOR_FIELD, DESCRIPTION_FIELD));
+
+        searchSourceBuilder.query(query);
+        searchSourceBuilder.size(requestSize);
+        searchRequest.source(searchSourceBuilder);
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+
+        return Arrays.stream(searchResponse.getHits().getHits()).map(hit -> new DozerBeanMapper().map(hit.getSourceAsMap(), ElastModel.class)).collect(Collectors.toList());
+    }
+
+    public List<ElastModel> getPopAccess(String detField, String detVal, String catVal) throws IOException {
+        SearchRequest searchRequest = new SearchRequest(PHONES_INDEX_ALIAS);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        QueryBuilder query = QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchAllQuery());
+
+        ((BoolQueryBuilder) query).filter(QueryBuilders.matchQuery(detField, detVal));
+        ((BoolQueryBuilder) query).filter(QueryBuilders.matchQuery(CATEGORY_FIELD, catVal));
+
+        searchSourceBuilder.query(query);
+        searchSourceBuilder.size(accessSize);
+        searchRequest.source(searchSourceBuilder);
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+
+        return Arrays.stream(searchResponse.getHits().getHits()).map(hit -> new DozerBeanMapper().map(hit.getSourceAsMap(), ElastModel.class)).collect(Collectors.toList());
     }
 }

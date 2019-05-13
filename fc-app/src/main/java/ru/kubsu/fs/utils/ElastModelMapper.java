@@ -21,15 +21,19 @@ public class ElastModelMapper {
         elastModel.setModelId(String.valueOf(model.getModelId()));
         elastModel.setModelName(model.getName());
         elastModel.setVendor(model.getVendor().getName());
+        elastModel.setFullName(elastModel.getVendor() + " " + elastModel.getModelName());
         elastModel.setDescription(model.getDescription());
         elastModel.setPrice(model.getPrice());
         elastModel.setViews(model.getViews());
+        elastModel.setCategory(model.getCategory().getCategoryId().toString());
 
         model.getDetailValueList().stream().filter(detailValue -> DetailsEnum.TYPE.getValue().getRu().equals(detailValue.getDetail().getName())).findFirst().ifPresent(detailValue -> elastModel.setType(detailValue.getValue()));
         model.getDetailValueList().stream().filter(detailValue -> DetailsEnum.ACCUMULATOR.getValue().getRu().equals(detailValue.getDetail().getName())).findFirst().ifPresent(detailValue -> elastModel.setAccumulator(detailValue.getValue()));
         model.getDetailValueList().stream().filter(detailValue -> DetailsEnum.DIAGONAL.getValue().getRu().equals(detailValue.getDetail().getName())).findFirst().ifPresent(detailValue -> elastModel.setDiagonal(detailValue.getValue()));
         model.getDetailValueList().stream().filter(detailValue -> DetailsEnum.RAM.getValue().getRu().equals(detailValue.getDetail().getName())).findFirst().ifPresent(detailValue -> elastModel.setRam(detailValue.getValue()));
         model.getDetailValueList().stream().filter(detailValue -> DetailsEnum.SIM.getValue().getRu().equals(detailValue.getDetail().getName())).findFirst().ifPresent(detailValue -> elastModel.setSim(detailValue.getValue()));
+        model.getDetailValueList().stream().filter(detailValue -> DetailsEnum.POWER_TYPE.getValue().getRu().equals(detailValue.getDetail().getName())).findFirst().ifPresent(detailValue -> elastModel.setPowerType(detailValue.getValue()));
+
         elastModel.setImageLocationList(model.getImageList().stream().map(Image::getLocation).collect(Collectors.toList()));
 
         return elastModel;

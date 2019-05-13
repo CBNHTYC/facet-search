@@ -14,6 +14,8 @@ public class ModelType {
     @JsonProperty
     private String modelName;
     @JsonProperty
+    private String fullName;
+    @JsonProperty
     private String type;
     @JsonProperty
     private String description;

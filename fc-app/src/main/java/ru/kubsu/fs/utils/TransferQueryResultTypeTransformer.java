@@ -2,12 +2,9 @@ package ru.kubsu.fs.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dozer.DozerBeanMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.kubsu.fs.dto.response.*;
 import ru.kubsu.fs.entity.ElastModel;
-import ru.kubsu.fs.entity.Image;
-import ru.kubsu.fs.repository.FcDao;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,9 +14,6 @@ import java.util.stream.Collectors;
 @Component
 public class TransferQueryResultTypeTransformer {
 
-    @Autowired
-    private FcDao fcDao;
-
     public PhonesResponse transform(List<ElastModel> phoneList) {
         DozerBeanMapper dozerBeanMapper = new DozerBeanMapper();
         PhonesResponse phonesResponse = new PhonesResponse();
@@ -28,20 +22,33 @@ public class TransferQueryResultTypeTransformer {
             ImageListType imageListType = new ImageListType();
             phoneType.setModel(dozerBeanMapper.map(phone, ModelType.class));
             phoneType.setDetails(dozerBeanMapper.map(phone, DetailType.class));
-            imageListType.setImageLocations(fcDao.getImagesByModelId(Long.valueOf(phone.getModelId())).stream().map(Image::getLocation).collect(Collectors.toList()));
+            imageListType.setImageLocationList(phone.getImageLocationList());
+            phoneType.setImages(imageListType);
             return phoneType;
         }).collect(Collectors.toList()));
         return phonesResponse;
     }
 
-    public PhonesResponse transform(ElastModel elastModel) {
+    public PhonesResponse transform(ElastModel phone, List<ElastModel> accessories) {
         DozerBeanMapper dozerBeanMapper = new DozerBeanMapper();
         PhonesResponse phonesResponse = new PhonesResponse();
         PhoneType phoneType = new PhoneType();
         ImageListType imageListType = new ImageListType();
-        phoneType.setModel(dozerBeanMapper.map(elastModel, ModelType.class));
-        phoneType.setDetails(dozerBeanMapper.map(elastModel, DetailType.class));
-        imageListType.setImageLocations(fcDao.getImagesByModelId(Long.valueOf(elastModel.getModelId())).stream().map(Image::getLocation).collect(Collectors.toList()));
+        phoneType.setModel(dozerBeanMapper.map(phone, ModelType.class));
+        phoneType.setDetails(dozerBeanMapper.map(phone, DetailType.class));
+        imageListType.setImageLocationList(phone.getImageLocationList());
+        phoneType.setImages(imageListType);
+
+        phoneType.setAccessories(accessories.stream().map(accessory -> {
+            AccessoriesType accessoriesType = new AccessoriesType();
+            ImageListType accImageListType = new ImageListType();
+            accessoriesType.setModel(dozerBeanMapper.map(accessory, ModelType.class));
+            accessoriesType.setDetails(dozerBeanMapper.map(accessory, DetailType.class));
+            accImageListType.setImageLocationList(accessory.getImageLocationList());
+            accessoriesType.setImages(accImageListType);
+            return accessoriesType;
+        }).collect(Collectors.toList()));
+
         phonesResponse.setPhoneTypeList(Collections.singletonList(phoneType));
         return phonesResponse;
     }

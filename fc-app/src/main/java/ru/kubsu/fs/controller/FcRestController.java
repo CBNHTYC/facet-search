@@ -16,6 +16,7 @@ import ru.kubsu.fs.entity.ElastModel;
 import ru.kubsu.fs.entity.Model;
 import ru.kubsu.fs.model.DetailDictionary;
 import ru.kubsu.fs.model.DetailsEnum;
+import ru.kubsu.fs.model.PhoneInfo;
 import ru.kubsu.fs.repository.ElastDao;
 import ru.kubsu.fs.repository.FcDao;
 import ru.kubsu.fs.service.ElastUpdate;
@@ -49,7 +50,7 @@ public class FcRestController {
         this.elastDao = elastDao;
     }
 
-    @GetMapping(path = "getPhones", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "getPhones", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getProject(@RequestBody String queryJson) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         StringWriter sw = new StringWriter();
@@ -70,13 +71,13 @@ public class FcRestController {
         return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
     }
 
-    @GetMapping(path = "phones", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "phone", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getPhoneById(@RequestParam("id") String id) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             StringWriter sw = new StringWriter();
-            ElastModel elastModel = elastDao.getPhoneById(id);
-            PhonesResponse phonesResponse = queryResultTypeMapper.transform(elastModel);
+            PhoneInfo phoneInfo = elastDao.getPhoneById(id);
+            PhonesResponse phonesResponse = queryResultTypeMapper.transform(phoneInfo.getPhone(), phoneInfo.getAccessories());
             objectMapper.writeValue(sw, phonesResponse);
             return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
         } catch (NotFoundException nfe) {
@@ -109,4 +110,24 @@ public class FcRestController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @GetMapping(path = "search", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> fulTextSearch(@RequestParam("query") String query) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        StringWriter sw = new StringWriter();
+        List<ElastModel> modelList = elastDao.fullTextSearch(query);
+        PhonesResponse phonesResponse = queryResultTypeMapper.transform(modelList);
+        objectMapper.writeValue(sw, phonesResponse);
+        return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
+    }
+
+//    @GetMapping(path = "getPopAccess", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<String> getPopAccess(@RequestParam("modelId") String modelId) throws IOException {
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        StringWriter sw = new StringWriter();
+//        List<ElastModel> modelList = elastDao.fullTextSearch(query);
+//        PhonesResponse phonesResponse = queryResultTypeMapper.transform(modelList);
+//        objectMapper.writeValue(sw, phonesResponse);
+//        return new ResponseEntity<>(sw.toString(), HttpStatus.OK);
+//    }
 }
