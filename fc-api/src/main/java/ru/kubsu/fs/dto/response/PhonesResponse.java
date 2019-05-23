@@ -11,4 +11,5 @@ import java.util.List;
 public class PhonesResponse {
     @JsonProperty
     private List<PhoneType> phoneTypeList;
+    private List<PhoneType> additionalList;
 }

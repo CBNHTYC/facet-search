@@ -2,6 +2,7 @@ package ru.kubsu.fs.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dozer.DozerBeanMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.kubsu.fs.dto.response.*;
 import ru.kubsu.fs.entity.ElastModel;
@@ -14,42 +15,26 @@ import java.util.stream.Collectors;
 @Component
 public class TransferQueryResultTypeTransformer {
 
+    @Autowired
+    PhoneTypeMapper phoneTypeMapper;
+
     public PhonesResponse transform(List<ElastModel> phoneList) {
-        DozerBeanMapper dozerBeanMapper = new DozerBeanMapper();
         PhonesResponse phonesResponse = new PhonesResponse();
-        phonesResponse.setPhoneTypeList(phoneList.stream().map(phone -> {
-            PhoneType phoneType = new PhoneType();
-            ImageListType imageListType = new ImageListType();
-            phoneType.setModel(dozerBeanMapper.map(phone, ModelType.class));
-            phoneType.setDetails(dozerBeanMapper.map(phone, DetailType.class));
-            imageListType.setImageLocationList(phone.getImageLocationList());
-            phoneType.setImages(imageListType);
-            return phoneType;
-        }).collect(Collectors.toList()));
+        phonesResponse.setPhoneTypeList(phoneList.stream().map(phoneTypeMapper::mapPhoneType).collect(Collectors.toList()));
         return phonesResponse;
     }
 
     public PhonesResponse transform(ElastModel phone, List<ElastModel> accessories) {
-        DozerBeanMapper dozerBeanMapper = new DozerBeanMapper();
         PhonesResponse phonesResponse = new PhonesResponse();
-        PhoneType phoneType = new PhoneType();
-        ImageListType imageListType = new ImageListType();
-        phoneType.setModel(dozerBeanMapper.map(phone, ModelType.class));
-        phoneType.setDetails(dozerBeanMapper.map(phone, DetailType.class));
-        imageListType.setImageLocationList(phone.getImageLocationList());
-        phoneType.setImages(imageListType);
-
-        phoneType.setAccessories(accessories.stream().map(accessory -> {
-            AccessoriesType accessoriesType = new AccessoriesType();
-            ImageListType accImageListType = new ImageListType();
-            accessoriesType.setModel(dozerBeanMapper.map(accessory, ModelType.class));
-            accessoriesType.setDetails(dozerBeanMapper.map(accessory, DetailType.class));
-            accImageListType.setImageLocationList(accessory.getImageLocationList());
-            accessoriesType.setImages(accImageListType);
-            return accessoriesType;
-        }).collect(Collectors.toList()));
-
+        PhoneType phoneType = phoneTypeMapper.mapPhoneType(phone);
+        phoneType.setAccessories(accessories.stream().map(phoneTypeMapper::mapAccessoriesType).collect(Collectors.toList()));
         phonesResponse.setPhoneTypeList(Collections.singletonList(phoneType));
+        return phonesResponse;
+    }
+
+    public PhonesResponse transformAddit(List<ElastModel> phoneList) {
+        PhonesResponse phonesResponse = new PhonesResponse();
+        phonesResponse.setAdditionalList(phoneList.stream().map(phoneTypeMapper::mapPhoneType).collect(Collectors.toList()));
         return phonesResponse;
     }
 }

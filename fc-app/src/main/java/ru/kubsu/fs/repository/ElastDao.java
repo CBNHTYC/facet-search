@@ -33,10 +33,7 @@ import ru.kubsu.fs.entity.ElastModel;
 import ru.kubsu.fs.model.PhoneInfo;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -154,16 +151,52 @@ public class ElastDao {
         }
     }
 
+    public ElastModel getAccessoryById(String id) throws IOException, NotFoundException {
+        SearchRequest searchRequest = new SearchRequest(PHONES_INDEX_ALIAS);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        QueryBuilder query = QueryBuilders.boolQuery()
+                .must(QueryBuilders.matchQuery(MODEL_ID_FIELD, id));
+
+        searchSourceBuilder.query(query);
+        searchSourceBuilder.size(requestSize);
+        searchRequest.source(searchSourceBuilder);
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+
+        Optional<SearchHit> optionalSearchHit = Arrays.stream(searchResponse.getHits().getHits()).findFirst();
+        if (optionalSearchHit.isPresent()) {
+            ElastModel elastModel = new DozerBeanMapper().map(optionalSearchHit.get().getSourceAsMap(), ElastModel.class);
+            elastModel.setViews(elastModel.getViews() + 1);
+            return elastModel;
+        } else {
+            throw new NotFoundException("Телефон с указанным id не найден");
+        }
+    }
+
     public List<ElastModel> getPhonesByParameters(ParametrizedQuery parametrizedQuery) throws IOException {
         SearchRequest searchRequest = new SearchRequest(PHONES_INDEX_ALIAS);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         QueryBuilder query = QueryBuilders.boolQuery()
                 .must(QueryBuilders.matchAllQuery());
 
+        Set<String> nameSet = parametrizedQuery.getSimpleParameter().stream().map(SimpleParameter::getName).collect(Collectors.toSet());
+
         Optional<List<SimpleParameter>> optionalSimpleTypes = Optional.ofNullable(parametrizedQuery.getSimpleParameter());
         if (optionalSimpleTypes.isPresent()) {
             List<SimpleParameter> simpleParameterList = optionalSimpleTypes.get();
-            simpleParameterList.forEach(simpleParameter -> ((BoolQueryBuilder) query).filter(QueryBuilders.matchQuery(simpleParameter.getName(), simpleParameter.getValue())));
+            nameSet.forEach(s -> {
+                List<String []> paramValList = simpleParameterList.stream()
+                        .filter(simpleParameter -> s.equals(simpleParameter.getName()))
+                        .map(simpleParameter -> {
+                            String paramVal = simpleParameter.getValue();
+                            paramVal = paramVal.toLowerCase();
+                            return paramVal.split("\\s");
+                        }).collect(Collectors.toList());
+                List<String> wordsList = new ArrayList<>();
+                for (String[] words : paramValList) {
+                    wordsList.addAll(Arrays.asList(words));
+                }
+                ((BoolQueryBuilder) query).filter(QueryBuilders.termsQuery(s, wordsList));
+            });
         }
 
         Optional<List<RangeParameter>> optionalRangeTypes = Optional.ofNullable(parametrizedQuery.getRangeParameter());
@@ -185,12 +218,46 @@ public class ElastDao {
         return Arrays.stream(searchResponse.getHits().getHits()).map(hit -> new DozerBeanMapper().map(hit.getSourceAsMap(), ElastModel.class)).collect(Collectors.toList());
     }
 
+    public List<ElastModel> getAdditPhonesByParameters(ParametrizedQuery parametrizedQuery) {
+        List<ElastModel> elastModelList = new ArrayList<>();
+        ParametrizedQuery parametrizedQueryTmp = new ParametrizedQuery();
+        parametrizedQueryTmp.setRangeParameter(parametrizedQuery.getRangeParameter());
+        if (Optional.ofNullable(parametrizedQuery.getSimpleParameter()).isPresent()) {
+            parametrizedQuery.getSimpleParameter().forEach(simpleParameter -> {
+                List<SimpleParameter> simpleParameterTmpList = new ArrayList<>(parametrizedQuery.getSimpleParameter());
+                simpleParameterTmpList.remove(simpleParameter);
+                parametrizedQueryTmp.setSimpleParameter(simpleParameterTmpList);
+                try {
+                    elastModelList.addAll(getPhonesByParameters(parametrizedQueryTmp));
+                } catch (IOException e) {
+                    log.error("Ошибка при поиске аналогичных моделей по параметрам: " + e.getMessage());
+                }
+            });
+        }
+        if (Optional.ofNullable(parametrizedQuery.getRangeParameter()).isPresent()) {
+            parametrizedQueryTmp.setSimpleParameter(parametrizedQuery.getSimpleParameter());
+            parametrizedQuery.getRangeParameter().forEach(rangeParameter -> {
+                List<RangeParameter> rangeParameterTmpList = new ArrayList<>(parametrizedQuery.getRangeParameter());
+                rangeParameterTmpList.remove(rangeParameter);
+                parametrizedQueryTmp.setRangeParameter(rangeParameterTmpList);
+                try {
+                    elastModelList.addAll(getPhonesByParameters(parametrizedQueryTmp));
+                } catch (IOException e) {
+                    log.error("Ошибка при поиске аналогичных моделей по параметрам: " + e.getMessage());
+                }
+            });
+        }
+        elastModelList.sort(Comparator.comparingInt(ElastModel::getViews));
+        return (elastModelList.subList(0, 9));
+    }
+
     public List<ElastModel> getMostViewedPhones() throws IOException {
         SearchRequest searchRequest = new SearchRequest(PHONES_INDEX_ALIAS);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         QueryBuilder query = QueryBuilders.boolQuery()
                 .must(QueryBuilders.matchAllQuery());
 
+        ((BoolQueryBuilder) query).filter(QueryBuilders.matchQuery(CATEGORY_FIELD, "2"));
         searchSourceBuilder.sort(new FieldSortBuilder(VIEW_FIELD).order(SortOrder.DESC));
         searchSourceBuilder.query(query);
         searchSourceBuilder.size(plateRequestSize);

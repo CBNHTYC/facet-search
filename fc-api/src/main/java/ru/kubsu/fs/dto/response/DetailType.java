@@ -15,4 +15,6 @@ public class DetailType {
     private String accumulator;
     @JsonProperty
     private String sim;
+    @JsonProperty
+    private String powerType;
 }
