@@ -32,4 +32,7 @@ public class Model {
 
     @OneToMany(mappedBy = "model", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<Image> imageList;
+
+    @OneToMany(mappedBy = "model", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<View> viewList;
 }

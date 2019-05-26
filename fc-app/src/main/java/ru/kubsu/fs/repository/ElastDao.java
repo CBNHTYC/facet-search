@@ -114,6 +114,20 @@ public class ElastDao {
         }
     }
 
+    public List<ElastModel> getPhoneListByIdList (List<Long> phoneIdList) throws IOException {
+        SearchRequest searchRequest = new SearchRequest(PHONES_INDEX_ALIAS);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        QueryBuilder query = QueryBuilders.boolQuery()
+                .must(QueryBuilders.termsQuery(MODEL_ID_FIELD, phoneIdList));
+
+        searchSourceBuilder.query(query);
+        searchSourceBuilder.size(plateRequestSize);
+        searchRequest.source(searchSourceBuilder);
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+
+        return Arrays.stream(searchResponse.getHits().getHits()).map(hit -> new DozerBeanMapper().map(hit.getSourceAsMap(), ElastModel.class)).collect(Collectors.toList());
+    }
+
     public PhoneInfo getPhoneById(String id) throws IOException, NotFoundException {
         SearchRequest searchRequest = new SearchRequest(PHONES_INDEX_ALIAS);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -178,11 +192,11 @@ public class ElastDao {
         QueryBuilder query = QueryBuilders.boolQuery()
                 .must(QueryBuilders.matchAllQuery());
 
-        Set<String> nameSet = parametrizedQuery.getSimpleParameter().stream().map(SimpleParameter::getName).collect(Collectors.toSet());
 
         Optional<List<SimpleParameter>> optionalSimpleTypes = Optional.ofNullable(parametrizedQuery.getSimpleParameter());
         if (optionalSimpleTypes.isPresent()) {
             List<SimpleParameter> simpleParameterList = optionalSimpleTypes.get();
+            Set<String> nameSet = simpleParameterList.stream().map(SimpleParameter::getName).collect(Collectors.toSet());
             nameSet.forEach(s -> {
                 List<String []> paramValList = simpleParameterList.stream()
                         .filter(simpleParameter -> s.equals(simpleParameter.getName()))
@@ -210,6 +224,7 @@ public class ElastDao {
             });
         }
 
+        ((BoolQueryBuilder) query).filter(QueryBuilders.matchQuery(CATEGORY_FIELD, "2"));
         searchSourceBuilder.query(query);
         searchSourceBuilder.size(requestSize);
         searchRequest.source(searchSourceBuilder);

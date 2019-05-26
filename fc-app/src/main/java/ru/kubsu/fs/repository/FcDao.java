@@ -4,10 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kubsu.fs.entity.Detail;
-import ru.kubsu.fs.entity.Image;
-import ru.kubsu.fs.entity.Model;
-import ru.kubsu.fs.entity.Vendor;
+import ru.kubsu.fs.entity.*;
 
 import java.util.List;
 
@@ -18,13 +15,17 @@ public class FcDao {
     private final ModelRepository modelRepository;
     private final ImageRepository imageRepository;
     private final VendorRepository vendorRepository;
+    private final UserRepositiry userRepositiry;
+    private final ViewRepository viewRepository;
 
     @Autowired
-    public FcDao(DetailsRepository detailsRepository, ModelRepository modelRepository, @Qualifier("imageRepository") ImageRepository imageRepository, VendorRepository vendorRepository) {
+    public FcDao(DetailsRepository detailsRepository, ModelRepository modelRepository, @Qualifier("imageRepository") ImageRepository imageRepository, VendorRepository vendorRepository, UserRepositiry userRepositiry, ViewRepository viewRepository) {
         this.detailsRepository = detailsRepository;
         this.modelRepository = modelRepository;
         this.imageRepository = imageRepository;
         this.vendorRepository = vendorRepository;
+        this.userRepositiry = userRepositiry;
+        this.viewRepository = viewRepository;
     }
 
 //    @Transactional
@@ -94,6 +95,9 @@ public class FcDao {
     }
 
     @Transactional
+    public Model getModelById(Long id) { return modelRepository.findByModelId(id); }
+
+    @Transactional
     public List<Detail> getAllDetails() {
         return detailsRepository.findAll();
     }
@@ -105,4 +109,19 @@ public class FcDao {
     public List<Image> getImagesByModelId(Long modelId) {
         return imageRepository.findAllByModelModelId(modelId);
     }
+
+    @Transactional
+    public List<User> getAllUsers() {return userRepositiry.findAll(); }
+
+    @Transactional
+    public User getUserById(Long userId) { return userRepositiry.findUserByUserId(userId); }
+
+    @Transactional
+    public User getUserByEmail(String email) { return userRepositiry.findUserByEmail(email); }
+
+    @Transactional
+    public void saveUser(User user) { userRepositiry.save(user); }
+
+    @Transactional
+    public void saveView(View view) { viewRepository.save(view); }
 }
