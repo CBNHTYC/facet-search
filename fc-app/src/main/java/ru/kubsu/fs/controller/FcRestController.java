@@ -16,7 +16,10 @@ import ru.kubsu.fs.dto.query.ParametrizedQuery;
 import ru.kubsu.fs.dto.query.RangeParameter;
 import ru.kubsu.fs.dto.response.PhonesResponse;
 import ru.kubsu.fs.dto.user.UserDto;
-import ru.kubsu.fs.entity.*;
+import ru.kubsu.fs.entity.Detail;
+import ru.kubsu.fs.entity.ElastModel;
+import ru.kubsu.fs.entity.User;
+import ru.kubsu.fs.entity.View;
 import ru.kubsu.fs.model.DetailDictionary;
 import ru.kubsu.fs.model.DetailsEnum;
 import ru.kubsu.fs.model.PhoneInfo;
@@ -121,8 +124,9 @@ public class FcRestController {
                         modelSet.addAll(paramModelList);
                     }
                 }
-
-                modelSet.addAll(elastDao.getMostViewedPhones());
+                if (modelSet.size() < maxRequestSize) {
+                    modelSet.addAll(elastDao.getMostViewedPhones().subList(0, maxRequestSize - modelSet.size() - 1));
+                }
             } else {
                 modelSet.addAll(elastDao.getMostViewedPhones());
             }
@@ -221,7 +225,7 @@ public class FcRestController {
     }
 
     @PostMapping(path = "pulse")
-    public ResponseEntity<String> pulse(@RequestParam("userId") String userId, @RequestParam("modelId") String modelId)
+    public ResponseEntity<String> pulse(@RequestParam("userId") String userId, @RequestParam("modelId") String modelId, @RequestParam("time") Integer time)
             throws IOException {
         if (StringUtils.hasText(userId)) {
             User user = fcDao.getUserById(Long.valueOf(userId));
@@ -233,7 +237,7 @@ public class FcRestController {
                             .findAny();
                     if (optView.isPresent()) {
                         View view = optView.get();
-                        view.setTime(view.getTime() + 60);
+                        view.setTime(view.getTime() + Optional.ofNullable(time).orElse(0));
                         fcDao.saveView(view);
                     }
                     return new ResponseEntity<>(HttpStatus.NO_CONTENT);

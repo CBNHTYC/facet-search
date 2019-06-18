@@ -24,3 +24,4 @@ public class ElastModel {
     private Integer views;
     private List<String> imageLocationList;
 }
+

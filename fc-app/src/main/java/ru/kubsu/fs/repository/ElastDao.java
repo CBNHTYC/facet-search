@@ -125,7 +125,9 @@ public class ElastDao {
         searchRequest.source(searchSourceBuilder);
         SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
 
-        return Arrays.stream(searchResponse.getHits().getHits()).map(hit -> new DozerBeanMapper().map(hit.getSourceAsMap(), ElastModel.class)).collect(Collectors.toList());
+        return Arrays.stream(searchResponse.getHits().getHits())
+                .map(hit -> new DozerBeanMapper().map(hit.getSourceAsMap(), ElastModel.class))
+                .collect(Collectors.toList());
     }
 
     public PhoneInfo getPhoneById(String id) throws IOException, NotFoundException {
@@ -153,8 +155,8 @@ public class ElastDao {
             List<ElastModel> accessories = getPopAccess(DIAGONAL_FIELD, elastModel.getDiagonal(), CASE_CAT);
             accessories.addAll(getPopAccess(POWER_TYPE_FIELD, elastModel.getPowerType(), POWER_CAT));
 
-            if (accessories.size() > 9) {
-                accessories = accessories.subList(0, 8);
+            if (accessories.size() > 4) {
+                accessories = accessories.subList(0, 3);
             }
 
             phoneInfo.setPhone(elastModel);
@@ -263,7 +265,10 @@ public class ElastDao {
             });
         }
         elastModelList.sort(Comparator.comparingInt(ElastModel::getViews));
-        return (elastModelList.subList(0, 9));
+        if (elastModelList.size() > 10) {
+            return (elastModelList.subList(0, 9));
+        } else
+            return elastModelList;
     }
 
     public List<ElastModel> getMostViewedPhones() throws IOException {
